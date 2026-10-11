@@ -1,0 +1,51 @@
+name: chimera_pipeline
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - bioconda
+dependencies:
+  # Base Python
+  - python=3.10
+
+  # C/C++ Bioinformatics CLI Tools
+  - pigz
+  - cutadapt
+  - star
+  - samtools
+  - bedtools
+
+  # Core Data Science & ML
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - statsmodels
+  - optuna
+  - pandera
+  - pyarrow
+  - rich
+
+  # High-Performance Python & Concurrency
+  - psutil
+  - tqdm
+  - joblib
+
+  # Specific Bioinformatics Python Libraries
+  - pybedtools
+  - pybigwig
+  - pysam
+  - viennarna          # Provides the 'RNA' module for duplex thermodynamics
+
+  # Deep Learning & GPU (PyTorch for CUDA RTX 3070 & XGBoost)
+  - pytorch
+  - pytorch-cuda=11.8  # Optimized for NVIDIA RTX 3070 (Ampere sm_86)
+  - xgboost
+
+  # Pip packages for specialized PyPI extensions
+  - pip
+  - pip:
+      - transformers   # HuggingFace for RNA-FM foundation model embeddings
+      - ushuffle       # Dinucleotide Monte Carlo permutation testing
+      - TElocal        # EM-algorithm tool for multimapped transposable elements

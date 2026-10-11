@@ -588,7 +588,8 @@ if __name__ == "__main__":
     parser.add_argument("--genome-fa", type=Path, default=Path("data/raw/genome/hg38.fa"), help="Path to hg38.fa")
     parser.add_argument("--mature-fa", type=Path, default=Path("data/raw/genome/mature.fa"), help="Path to miRBase mature.fa")
     parser.add_argument("--attract-db", type=Path, default=Path("data/raw/rbp/ATtRACT_db.zip"), help="Path to ATtRACT_db.zip")
-    parser.add_argument("--active-l1-bed", type=Path, default=Path("data/prepped/active_l1_loci.bed"), help="Path to active L1 BED")
+    # AFTER
+    parser.add_argument("--active-l1-bed", type=Path, default=Path("data/prepped/active_orf2.bed"), help="Path to active L1 BED")
     parser.add_argument("--rnafm-dir", type=Path, default=Path("data/raw/models/rnafm"), help="Path to RNA-FM weights")
     parser.add_argument("--projection-file", type=Path, default=Path("data/models/swe_projection_matrix.pt"), help="SWE Projection artifact")
     parser.add_argument("--batch-size", type=int, default=256, help="Batch size for parallel processing")

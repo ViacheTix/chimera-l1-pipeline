@@ -855,10 +855,12 @@ def main() -> None:
     """CLI dispatcher for statistical_validation.py."""
     parser = argparse.ArgumentParser(description="Statistical Validation Pipeline for miRNA-LINE-1 Binding.")
     
-    parser.add_argument("--model", type=Path, default=Path("data/models/xgb_mirna_l1_model.json"), help="Path to XGBoost model JSON.")
+    # AFTER
+    parser.add_argument("--model", type=Path, default=Path("data/models/xgb_mirna_l1.json"), help="Path to XGBoost model JSON.")
     parser.add_argument("--features", type=Path, default=Path("data/features/hybrid_matrix.parquet"), help="Path to hybrid feature matrix.")
     parser.add_argument("--peaks", type=Path, default=Path("data/prepped/ground_truth_ago2_peaks.parquet"), help="Path to ground truth peaks.")
-    parser.add_argument("--loci", type=Path, default=Path("data/prepped/active_l1_loci.bed"), help="Path to active L1 loci BED.")
+    # AFTER
+    parser.add_argument("--loci", type=Path, default=Path("data/prepped/active_orf2.bed"), help="Path to active L1 loci BED.")
     parser.add_argument("--genome-fa", type=Path, default=Path("data/raw/genome/hg38.fa"), help="Path to hg38.fa.")
     parser.add_argument("--projection-file", type=Path, default=Path("data/models/swe_projection_matrix.pt"), help="Path to SWE projection pt.")
     

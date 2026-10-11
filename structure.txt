@@ -1,0 +1,31 @@
+project_root/
+├── data/
+│   ├── raw/
+│   │   ├── genome/
+│   │   │   ├── rmsk.txt.gz                 # UCSC RepeatMasker annotations[cite: 7]
+│   │   │   ├── hg38.fa                     # Primary hg38 reference genome[cite: 3]
+│   │   │   ├── mature.fa                   # miRBase mature microRNA sequences[cite: 3]
+│   │   │   ├── gencode.v45.annotation.gtf.gz # Gene annotations for read-through filtering[cite: 2]
+│   │   │   └── star_index/                 # Pre-built STAR genome index directory[cite: 6]
+│   │   ├── epigenome/
+│   │   │   ├── ENCFF066MEE.bigWig          # H3K9me3 heterochromatin track[cite: 2]
+│   │   │   ├── ENCFF421TGH_plus.bigWig     # Nascent transcription GRO-seq (+)[cite: 2]
+│   │   │   └── ENCFF554WDC_minus.bigWig    # Nascent transcription GRO-seq (-)[cite: 2]
+│   │   ├── eclip/
+│   │   │   ├── SRR34920805_1.fastq.gz      # Target chimeric raw reads (Control)[cite: 6]
+│   │   │   └── SRR..._2.fastq.gz           # Additional paired reads[cite: 6]
+│   │   ├── rbp/
+│   │   │   └── ATtRACT_db.zip              # Database of RBP binding motifs (hnRNPA1)[cite: 3]
+│   │   └── models/
+│   │       └── rnafm/                      # Pretrained RNA-FM weights for PyTorch[cite: 3]
+│   ├── indices/
+│   │   ├── STAR_hg38/                      # Secondary STAR mapping indices[cite: 6]
+│   │   └── hg38_rmsk_TE.gtf.locInd.gz      # TElocal indices for EM mapping[cite: 6]
+│   ├── prepped/                            # Generated: L1 bed files, BAMs, EM peaks[cite: 2, 6]
+│   ├── features/                           # Generated: Hybrid Parquet matrices[cite: 3]
+│   ├── models/                             # Generated: Output XGBoost JSONs, PyTorch projection matrices[cite: 4, 5]
+│   ├── results/                            # Generated: FDR validated biological sites (TSV)[cite: 4]
+│   ├── lineage/                            # Generated: Output Audit JSONs tracking run specs[cite: 3, 5]
+│   └── figures/                            # Generated: Diagnostic PDFs, scatterplots, distributions[cite: 2, 3, 4, 5]
+├── logs/                                   # General runtime execution logs[cite: 3, 4, 5, 6]
+└── (all python and bash scripts)
