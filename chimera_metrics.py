@@ -6,6 +6,7 @@
 """
 
 import argparse
+import gzip
 import json
 import logging
 import multiprocessing as mp
@@ -35,7 +36,7 @@ logger = logging.getLogger("chimera_metrics")
 MIN_PEAK_LENGTH = 15
 MAX_PEAK_LENGTH = 75
 MIN_ORF2_OVERLAP_BP = 15
-TARGET_MIRNA_REGEX = r"mir-128-3p|let-7.*-5p"
+TARGET_MIRNA_REGEX = r"mir-128-3p|let-7*-5p"
 
 
 def _filter_peak_chunk(chunk_data: Tuple[pd.DataFrame, float]) -> pd.DataFrame:
@@ -267,38 +268,49 @@ def generate_visualizations(peaks_df: pd.DataFrame, out_dir: Path) -> None:
     logger.info(f"Диагностические графики сохранены в {plot_path}")
 
 
+def count_fastq_reads(fastq_path: Path) -> int:
+    """Быстрый подсчет количества чтений в .fastq.gz (для метрик аудита)."""
+    if not fastq_path or not fastq_path.exists():
+        return 0
+    logger.info(f"Подсчет исходных чтений в {fastq_path.name}...")
+    with gzip.open(fastq_path, "rt") as f:
+        return sum(1 for _ in f) // 4
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Chimera Deconvolution & EM Mapping Validation")
+    parser = argparse.ArgumentParser(description="Chimera Deconvolution Validation")
     parser.add_argument("--peaks-bed", type=Path, required=True, help="Путь к сырым пикам EM_resolved_peaks.bed")
-    parser.add_argument("--active-l1-bed", type=Path, required=True, help="Путь к транскрипционно активным L1_ORF2 (BED)")
-    parser.add_argument("--out-parquet", type=Path, required=True, help="Путь для сохранения финального Parquet")
-    parser.add_argument("--out-audit", type=Path, required=True, help="Путь для JSON файла аудита пайплайна")
-    parser.add_argument("--min-posterior", type=float, default=0.05, help="Порог уверенности алгоритма EM")
-    parser.add_argument("--threads", type=int, default=24, help="Лимит вычислительных потоков (макс. 24)")
+    parser.add_argument("--active-l1-bed", type=Path, required=True, help="Путь к активным L1_ORF2 (BED)")
+    parser.add_argument("--raw-fastq", type=Path, required=False, help="Путь к сырым FASTQ (SRR) для базовых метрик")
+    parser.add_argument("--out-parquet", type=Path, required=True, help="Путь для Parquet")
+    parser.add_argument("--out-audit", type=Path, required=True, help="Путь для JSON аудита")
+    parser.add_argument("--min-posterior", type=float, default=0.05, help="Порог уверенности EM")
+    parser.add_argument("--threads", type=int, default=24, help="Лимит потоков")
     args = parser.parse_args()
 
     t_start = time.time()
-    
-    # Жесткий лимит потоков для безопасности сервера (оставляем 4 ядра под OS)
     threads = min(args.threads, 24)
     if args.threads > 24:
         logger.warning("Запрошено более 24 потоков. Принудительное ограничение до 24 потоков для стабильности ОС.")
+    
+    # 0. Инициализация базовых метрик
+    total_raw_reads = count_fastq_reads(args.raw_fastq) if args.raw_fastq else 0
 
-    # 1. Параллельная предобработка и фильтрация EM пиков (Биофизический контроль)
+    # 1. Параллельная предобработка
     filtered_raw_df = preprocess_em_peaks_parallel(args.peaks_bed, args.min_posterior, threads)
     
-    # 2. Пространственное пересечение с активным L1 и слияние дубликатов (Anti-Leakage & Anti-Clamping)
+    # 2. Пересечение (Anti-Leakage & Anti-Clamping)
     final_peaks_df, pre_intersect_count = intersect_with_active_l1(filtered_raw_df, args.active_l1_bed)
     
-    # 3. Сохранение валидированной выборки позитивного класса
+    # 3. Сохранение
     args.out_parquet.parent.mkdir(parents=True, exist_ok=True)
     final_peaks_df.to_parquet(args.out_parquet, engine="pyarrow", index=False)
     logger.info(f"Сохранено {len(final_peaks_df)} подтвержденных in vivo контактов в {args.out_parquet}")
 
-    # 4. Визуализация метрик
+    # 4. Визуализация
     generate_visualizations(final_peaks_df, args.out_parquet.parent.parent / "figures")
 
-    # 5. Глубокий аудит пайплайна (Deep Lineage Audit)
+    # 5. Глубокий аудит (с учетом FASTQ)
     duration = time.time() - t_start
     memory_usage_mb = psutil.Process().memory_info().rss / (1024 * 1024)
     
@@ -313,9 +325,10 @@ def main() -> None:
             "max_peak_length_bp": MAX_PEAK_LENGTH
         },
         "filtering_funnel": {
-            "pre_intersect_anchors": pre_intersect_count,
+            "initial_srr_chimeric_reads": total_raw_reads,
+            "em_resolved_multimapped_anchors": pre_intersect_count,
             "final_ground_truth_peaks": len(final_peaks_df),
-            "dropped_no_orf2_intersection": pre_intersect_count - len(final_peaks_df)
+            "global_retention_rate": round(len(final_peaks_df) / total_raw_reads, 6) if total_raw_reads else None
         },
         "anchors_breakdown": final_peaks_df["mirna_guide"].value_counts().to_dict() if not final_peaks_df.empty else {},
         "hardware_telemetry": {
