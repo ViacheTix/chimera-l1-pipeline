@@ -31,7 +31,7 @@ logging.basicConfig(
 logger = logging.getLogger("epigenetic_filter")
 
 # Биологические константы
-MIN_INTACT_L1_LENGTH = 6000  # Строгий порог длины для полноразмерных элементов
+MIN_INTACT_L1_LENGTH = 5800  # Строгий порог длины для полноразмерных элементов
 UTR5_LENGTH = 900            # Длина 5'-UTR (промоторная зона для оценки эпигенетики)
 ORF2_5P_OFFSET = 1980        # Начало ORF2 относительно 5'-TSS
 ORF2_3P_OFFSET = 5810        # Конец ORF2 относительно 5'-TSS
